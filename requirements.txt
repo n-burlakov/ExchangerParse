@@ -1,0 +1,5 @@
+selenium
+selenium-wire
+fake-useragent
+bs4
+webdriver-manager
