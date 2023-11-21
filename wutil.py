@@ -1,14 +1,15 @@
 from os import path, getcwd
 import json
 from datetime import datetime
+from typing import Dict, Any
 
 from seleniumwire import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from fake_useragent import UserAgent
-from typing import Dict, Any
 
 from ramon import ramon_parser
+from westchange import westchange_parser
 
 
 class DataUtils:
@@ -21,10 +22,11 @@ class DataUtils:
             There is need add to self.parser_dict new exchange modules,
             key of dict should be same as name of directory running exchanger.
         """
-        self.parser_dict = {"ramon": ramon_parser.ParseRamon}
+        self.parser_dict = {"ramon": ramon_parser.ParseRamon,
+                            "westchange": westchange_parser.ParseWestchange}
 
-    @staticmethod
-    def __parse_config_file(config_filepath: str) -> Dict[str, str]:
+    @classmethod
+    def __parse_config_file(cls, config_filepath: str) -> Dict[str, str]:
         """
             Get config dictionary from 'config' directory
 
@@ -48,11 +50,10 @@ class DataUtils:
             :return name of run module name
         """
         settings_data = self.__parse_config_file(path.join(getcwd(), f"config/name_{conf}_config.json"))
-        param = settings_data[name]
 
-        return param
+        return settings_data[name]
 
-    def choose_package_name(self, name: str) -> Any:
+    def get_object_of_exchanger(self, name: str = None, attribute_dict: Dict = None) -> Any:
         """
             Get package name from self.parser_dict dictionary
 
@@ -61,7 +62,7 @@ class DataUtils:
         """
         conf = "package"
         package = self.get_params(name, conf)
-        return self.parser_dict[package]
+        return self.parser_dict[package](attribute_dict)
 
     def get_url_by_name(self, name: str) -> str:
         """
@@ -71,11 +72,10 @@ class DataUtils:
         :return: exchange url
         """
         conf = "urls"
-        exchange_url = self.get_params(name, conf)
-        return exchange_url
+        return self.get_params(name, conf)
 
-    @staticmethod
-    def get_webdriver(host: str, port: str, usr: str, pwd: str) -> Any:
+    @classmethod
+    def get_webdriver(cls, host: str, port: str, usr: str, pwd: str) -> Any:
         """
             Create webdriver object with options and proxy secure
 

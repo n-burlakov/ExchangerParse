@@ -78,8 +78,8 @@ class ParseRamon(BaseParser):
             driver.quit()
 
     def get_currency_name(self, currency: str = None) -> str:
-        coin_dict = {"USDT": "Tether ", "BTC": "Bitcoin"}
-        return [currency.replace(key, value) for key, value in coin_dict.items() if key in currency][0]
+        coin_dict = {"USDT": "Tether ("}
+        return [currency.replace(key, value).replace("20", "-20) USDT") for key, value in coin_dict.items() if key in currency][0]
 
     def get_click_currency(self, currency: str, currency_list: list):
         current_currency = self.get_currency_name(currency)
@@ -105,8 +105,6 @@ class ParseRamon(BaseParser):
 
     def click_trade(self, driver: Any = None, count: float = 0):
         driver = self._click(driver, "id", "transaction-submit-create-ajax")
-        driver = self._click(driver, "id", "aml-submit")
-        driver = self._click(driver, "id", "transaction-submit-create-ajax")
         self._timer_time(driver)
         return driver
 
@@ -115,17 +113,19 @@ class ParseRamon(BaseParser):
         try:
             driver.get(self.parse_url)
             self.get_click_currency(self.currency_from,
-                        driver.find_elements(By.CLASS_NAME, "col-md-3")[0].find_elements(By.CLASS_NAME, "row")).click()
+                                    driver.find_element(By.CLASS_NAME, "xtt_left_col_table_ins").find_elements(
+                                        By.CLASS_NAME, "xtt_one_line_left")).click()
             self.get_click_currency(self.currency_to,
-                        driver.find_elements(By.CLASS_NAME, "col-md-3")[1].find_elements(By.CLASS_NAME, "row")).click()
+                                    driver.find_element(By.CLASS_NAME, "xtt_right_col_table_ins").find_elements(
+                                        By.CLASS_NAME, "js_item_right")).click()
 
             while True:
                 time.sleep(0.4)
                 try:
-                    exchange_form = driver.find_elements(By.ID, "exchange-form")[1]
+                    exchange_form = driver.find_element(By.CLASS_NAME, "xchange_div")
                     break
                 except IndexError as exc:
-                    logging.error("Exchange form is not available \n"+str(exc))
+                    logging.error("Exchange form is not available \n" + str(exc))
                     pass
 
             input_tag = exchange_form.find_element(By.CLASS_NAME, "input-group").find_element(By.TAG_NAME, "input")

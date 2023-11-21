@@ -8,7 +8,7 @@ class BaseParser(ABC):
         Abstract base class for future exchangers
     """
     @abstractmethod
-    def parse_page(self) -> str:
+    def parse_page(self) -> Dict:
         """
             Parse exchanger with selenium.
 
@@ -48,18 +48,6 @@ class BaseParser(ABC):
         """
         pass
 
-    def _get_driver(self, host: str, port: str, usr: str, pwd: str) -> Any:
-        """
-            Get webdriver object with proxy options.
-
-        :param host: proxy host;
-        :param port: proxy port;
-        :param usr: proxy user name;
-        :param pwd: proxy user password;
-        :return: webdriver object.
-        """
-        pass
-
     @abstractmethod
     def get_currency_name(self, currency: str = None) -> str:
         """
@@ -83,7 +71,7 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> List:
+    def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> Dict:
         """
             Update information after getting task url for exchange.
 
@@ -94,7 +82,7 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def approve_task(self, task_url: str = None) -> List:
+    def approve_task(self, task_url: str = None) -> Dict:
         """
             Click button approve exchange task in task url.
 
