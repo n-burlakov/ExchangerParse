@@ -6,7 +6,6 @@ function getTurnstileParams() {
     window.turnstile.render = (a, b) => {
       let p = {
         method: "turnstile",
-        // key: "c68e8b3dbf940c90cae870fb89cc7fae",
         sitekey: b.sitekey,
         pageurl: window.location.href,
         data: b.cData,

@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Dict, Any
 import time
 
-# from seleniumwire import webdriver as webdriver_wire
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -116,7 +115,7 @@ class DataUtils:
         options = webdriver.ChromeOptions()
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        # options.add_argument('--headless=new')  # turn off opening browser window
+        options.add_argument('--headless=new')  # turn off opening browser window
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
@@ -187,7 +186,7 @@ class DataUtils:
         options.add_argument("--disable-gpu")
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        # options.add_argument('--headless=new')  # turn off opening browser window
+        options.add_argument('--headless=new')  # turn off opening browser window
         options.add_argument(f"user-agent={useragent.random}")
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
 

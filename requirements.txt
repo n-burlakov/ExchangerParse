@@ -2,5 +2,6 @@ selenium
 selenium-wire
 fake-useragent
 bs4
+2captcha-python
 webdriver-manager
 2captcha-python
