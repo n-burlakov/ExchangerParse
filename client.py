@@ -52,7 +52,7 @@ class ParseClient:
                                              currency_to, wallet_from, wallet_to, value]))
         parse_obj = self.wu.get_object_of_exchanger(name, attribute_dict)
 
-        output_vars = parse_obj.parse_page
+        output_vars = parse_obj.parse_page()
         logging.info(f"{'#'*30} Task done! {'#'*30}")
         return output_vars
 
@@ -102,10 +102,10 @@ if __name__ == "__main__":
     ############################
     # Example execution methods
     temp = ParseClient()
-    temp_dict1 = temp.prepare_exchange(name="ramon", email="iloch4@gmail.com", currency_to="USDTTRC20",
+    temp_dict1 = temp.prepare_exchange(name="westchange", email="iloch4@gmail.com", currency_to="USDTTRC20",
                                        currency_from="BTC",
-                                       wallet_to="0x0F02E959617B3e24d077fCB8B0D9B780cB6fcf55", value=1)
+                                       wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=0.0005)
     print(temp_dict1)
     time.sleep(5)
-    print(temp.renew_task(name="ramon", task_url=temp_dict1['task_url']))
+    print(temp.renew_task(name="westchange", task_url=temp_dict1['task_url']))
     ############################

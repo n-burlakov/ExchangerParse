@@ -2,11 +2,19 @@ from os import path, getcwd
 import json
 from datetime import datetime
 from typing import Dict, Any
+import time
 
-from seleniumwire import webdriver
+# from seleniumwire import webdriver as webdriver_wire
+from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+
 from fake_useragent import UserAgent
+
+from twocaptcha import TwoCaptcha
+from twocaptcha.solver import NetworkException
 
 from ramon import ramon_parser
 from westchange import westchange_parser
@@ -57,6 +65,7 @@ class DataUtils:
         """
             Get package name from self.parser_dict dictionary
 
+        :param attribute_dict: dictionary with arguments for next function;
         :param name: name of exchanger;
         :return: object of exchanger parser class
         """
@@ -73,6 +82,91 @@ class DataUtils:
         """
         conf = "urls"
         return self.get_params(name, conf)
+
+    def cloudflare_challenge_solve_captcha(self, exchange_url: str = None, host: str = None, port: str = None,
+                                           usr: str = None, pwd: str = None) -> Any:
+        """
+            Solve Cloudflare Challenge captcha
+
+        :param host: proxy host name;
+        :param port: proxy port;
+        :param usr: user name;
+        :param pwd: proxy password;
+        :param exchange_url: exсhanger url;
+        :return: solved driver with captcha.
+        """
+        api_key = self.get_params("key", "captcha")
+        callback = self.get_params("callback", "captcha")
+
+        config = {
+            'server': 'rucaptcha.com',
+            'apiKey': api_key,
+            'softId': 123,
+            'callback': callback,
+            'defaultTimeout': 150,
+            'recaptchaTimeout': 600,
+            'pollingInterval': 20,
+        }
+
+        solver = TwoCaptcha(**config)
+
+        with open('jquery.js', 'r') as f:
+            jquery_js = f.read()
+
+        options = webdriver.ChromeOptions()
+        if usr and pwd:
+            options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
+        # options.add_argument('--headless=new')  # turn off opening browser window
+        options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
+        driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+
+        # launch URL
+        driver.get(exchange_url)
+        # set JS script for stopping captcha
+        driver.execute_script(jquery_js)
+        time.sleep(2)
+        main_count = 5
+        while main_count != 0:
+            try:
+                count = 0
+                try:
+                    while count != 5:
+                        # get js data
+                        time.sleep(3)
+                        for e in driver.get_log('browser'):
+                            resp = e['message']
+                            if "sitekey" in resp:
+                                resp = json.loads(json.loads(resp.split(' ')[2]))
+                                count = 5
+                                break
+                        else:
+                            count += 1
+                            driver.execute_script(jquery_js)
+                except Exception as exc:
+                    raise exc
+                result = solver.turnstile(
+                    sitekey=resp['sitekey'], url=exchange_url, data=resp['data'], pagedata=resp['pagedata'],
+                    action=resp['action'],
+                    useragent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
+                break
+            except Exception as exc:
+                driver.refresh()
+                driver.execute_script(jquery_js)
+                time.sleep(2)
+                main_count -= 1
+
+        for tick in range(16, 30, 2):
+            try:
+                time.sleep(tick)
+                token = solver.get_result(result['captchaId'])
+                break
+            except NetworkException as exc:
+                if 'CAPCHA_NOT_READY' in str(exc) or 'NETWORK' in str(exc):
+                    continue
+            except Exception as exc:
+                raise exc
+        driver.execute_script("window.tsCallback(arguments[0]);", (str(token)))
+        return driver
 
     @classmethod
     def get_webdriver(cls, host: str, port: str, usr: str, pwd: str) -> Any:
@@ -91,15 +185,10 @@ class DataUtils:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
+        if usr and pwd:
+            options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
         # options.add_argument('--headless=new')  # turn off opening browser window
         options.add_argument(f"user-agent={useragent.random}")
-        if usr and pwd:
-            proxy_options = {
-                "proxy": {"https": f"https://{usr}:{pwd}@{host}:{port}"},
-            }
-        else:
-            proxy_options = dict()
+        options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
 
-        return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                                options=options,
-                                seleniumwire_options=proxy_options)
+        return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
