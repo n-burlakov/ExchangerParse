@@ -191,7 +191,7 @@ class DataUtils:
         options.add_argument("--disable-gpu")
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        options.add_argument('--headless=new')  # turn off opening browser window
+        # options.add_argument('--headless=new')  # turn off opening browser window
         options.add_argument(f"user-agent={useragent.random}")
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
 

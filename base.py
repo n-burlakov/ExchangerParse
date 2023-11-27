@@ -25,10 +25,11 @@ class BaseParser(ABC):
         """
         pass
 
-    def auth(self, login: str, password: str) -> bool:
+    def auth(self, login: str, password: str, driver: Any = None) -> bool:
         """
             Authenticate method
 
+        :param driver: webdriver object;
         :param login: user login;
         :param password: user password;
         :return: auth status
