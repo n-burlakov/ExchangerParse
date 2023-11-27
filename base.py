@@ -16,7 +16,6 @@ class BaseParser(ABC):
         """
         pass
 
-    @abstractmethod
     def click_trade(self, driver: Any = None) -> None:
         """
             Click button 'Ready to trade', confirm that button clicked.

@@ -1,3 +1,4 @@
+import logging
 from os import path, getcwd
 import json
 from datetime import datetime
@@ -17,6 +18,7 @@ from twocaptcha.solver import NetworkException
 
 from ramon import ramon_parser
 from westchange import westchange_parser
+from bitpayes import bitpayes_parser
 
 
 class DataUtils:
@@ -30,7 +32,8 @@ class DataUtils:
             key of dict should be same as name of directory running exchanger.
         """
         self.parser_dict = {"ramon": ramon_parser.ParseRamon,
-                            "westchange": westchange_parser.ParseWestchange}
+                            "westchange": westchange_parser.ParseWestchange,
+                            "bitpayes": bitpayes_parser.ParseBitpayes}
 
     @classmethod
     def __parse_config_file(cls, config_filepath: str) -> Dict[str, str]:
@@ -115,7 +118,7 @@ class DataUtils:
         options = webdriver.ChromeOptions()
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        options.add_argument('--headless=new')  # turn off opening browser window
+        # options.add_argument('--headless=new')  # turn off opening browser window
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
@@ -143,6 +146,7 @@ class DataUtils:
                             driver.execute_script(jquery_js)
                 except Exception as exc:
                     raise exc
+                print(solver.balance())
                 result = solver.turnstile(
                     sitekey=resp['sitekey'], url=exchange_url, data=resp['data'], pagedata=resp['pagedata'],
                     action=resp['action'],
@@ -165,6 +169,7 @@ class DataUtils:
             except Exception as exc:
                 raise exc
         driver.execute_script("window.tsCallback(arguments[0]);", (str(token)))
+        logging.info("CAPTCHA WAS SOLVED.")
         return driver
 
     @classmethod
