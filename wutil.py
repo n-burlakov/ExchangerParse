@@ -19,6 +19,7 @@ from twocaptcha.solver import NetworkException
 from ramon import ramon_parser
 from westchange import westchange_parser
 from bitpayes import bitpayes_parser
+from cryptogin import cryptogin_parser
 
 
 class DataUtils:
@@ -33,7 +34,8 @@ class DataUtils:
         """
         self.parser_dict = {"ramon": ramon_parser.ParseRamon,
                             "westchange": westchange_parser.ParseWestchange,
-                            "bitpayes": bitpayes_parser.ParseBitpayes}
+                            "bitpayes": bitpayes_parser.ParseBitpayes,
+                            "cryptogin": cryptogin_parser.ParseCryptogin}
 
     @classmethod
     def __parse_config_file(cls, config_filepath: str) -> Dict[str, str]:
@@ -118,7 +120,7 @@ class DataUtils:
         options = webdriver.ChromeOptions()
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        # options.add_argument('--headless=new')  # turn off opening browser window
+        options.add_argument('--headless=new')  # turn off opening browser window
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
         driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
@@ -150,7 +152,7 @@ class DataUtils:
                 result = solver.turnstile(
                     sitekey=resp['sitekey'], url=exchange_url, data=resp['data'], pagedata=resp['pagedata'],
                     action=resp['action'],
-                    useragent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
+                    useragent='Chrome/119.0.0.0')
                 break
             except Exception as exc:
                 driver.refresh()
@@ -191,7 +193,7 @@ class DataUtils:
         options.add_argument("--disable-gpu")
         if usr and pwd:
             options.add_argument(f"--proxy-server=https://{usr}:{pwd}@{host}:{port}")
-        options.add_argument('--headless=new')  # turn off opening browser window
+        # options.add_argument('--headless=new')  # turn off opening browser window
         options.add_argument(f"user-agent={useragent.random}")
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
 

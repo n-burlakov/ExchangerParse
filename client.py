@@ -102,10 +102,10 @@ if __name__ == "__main__":
     ############################
     # Example execution methods
     temp = ParseClient()
-    temp_dict1 = temp.prepare_exchange(name="westchange", email="ilovesach4@gmail.com", currency_to="USDTTRC20",
-                                       currency_from="BTC",
-                                       wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=0.0005)
-    print(temp_dict1)
+    # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="ilovesach4@gmail.com", currency_from="USDTTRC20",
+    #                                    currency_to="BTC",
+    #                                    wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=0.0005)
+    # print(temp_dict1)
     # time.sleep(5)
-    # print(temp.renew_task(name="westchange", task_url=temp_dict1['task_url']))
+    print(temp.renew_task(name="bitpayes", task_url="https://bitpayes.com/exchange/ru/32122/details.htm"))
     ############################
