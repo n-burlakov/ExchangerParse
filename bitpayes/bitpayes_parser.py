@@ -25,12 +25,31 @@ class ParseBitpayes(BaseParser):
             pass
 
     def accept_cookie(self, driver: Any = None) -> Any:
-        return driver.find_element(By.ID, "bot1-Msg1").click()
+        try:
+            cookie = driver.find_element(By.ID, "bot1-Msg1")
+            cookie.click()
+        except NoSuchElementException:
+            pass
+        return driver
+
+    def auth(self, login: str, password: str, driver: Any = None) -> bool:
+        driver.find_element(By.CLASS_NAME, "svg-inline--fa").click()
+        # driver.find_element(By.CLASS_NAME, "svg-inline--fa fa-sign-in-alt fa-w-16").click()
+        driver.find_element(By.ID, "UserEmailAuth").send_keys(login)
+        driver.find_element(By.ID, "UUserPasswordAuth").send_keys(password)
+        driver.find_element(By.ID, "btnReAuth").click()
+        return True
 
     def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> Dict:
         if not driver:
             driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
             driver.get(task_url)
+            time.sleep(5)
+            driver = self.accept_cookie(driver)
+            if self.auth(self.usr, self.pwd, driver):
+                print('Success')
+            else:
+                print('smth wrong')
             close = True
         else:
             close = False
@@ -60,8 +79,18 @@ class ParseBitpayes(BaseParser):
                 driver.close()
                 driver.quit()
 
-    def approve_task(self, task_url: str = None) -> Dict:
-        return {"status": "success", "text": "Exchange was approved, but the button 'Paid' wasn't find."}
+    def approve_task(self, task_url: str = None, hash_code: str = None) -> Dict:
+        driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
+        try:
+            driver.get(task_url)
+            driver.find_element(By.ID, "payment_USDT_TRANID").send_keys(hash_code)
+            self._click(driver, "class_name", "btn-success")
+            return {"status": "success", "text": "Button was clicked"}
+        except Exception as exc:
+            logging.error(str(exc))
+        finally:
+            driver.close()
+            driver.quit()
 
     def get_currency_name(self, currency: str = None) -> str:
         coin_dict = {"USDT": "Tether USD (", "BTC": "Bitcoin"}
@@ -101,7 +130,7 @@ class ParseBitpayes(BaseParser):
         driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
         try:
             driver.get(self.parse_url)
-            self.accept_cookie(driver)
+            driver = self.accept_cookie(driver)
             self.get_click_currency(self.currency_from,
                                     driver.find_elements(By.CLASS_NAME, "col-md-6")[0].find_elements(By.CLASS_NAME,
                                                                                                      "inmetka")).click()
@@ -144,14 +173,18 @@ class ParseBitpayes(BaseParser):
                     break
 
             driver.find_element(By.ID, "btnSendNext").click()
-            time.sleep(0.5)
+
             try:
                 driver.find_element(By.ID, "bot1-Msg1").click()
                 time.sleep(0.5)
             except NoSuchElementException:
                 pass
 
+            time.sleep(5)
+
             self.check_alert(driver)  # check right exchange
+
+            driver = self.accept_cookie(driver)
 
             for tag in driver.find_elements(By.CLASS_NAME, "custom-control-label"):
                 if tag.get_attribute("for") == "rulesConfirmOperation":

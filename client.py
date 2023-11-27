@@ -79,7 +79,7 @@ class ParseClient:
         return output_vars
 
     def approve_task(self, name: str = None, task_url: str = None, host: str = None, port: str = None, usr: str = None,
-                     pwd: str = None, ) -> Dict:
+                     pwd: str = None, hash_code: str = None, ) -> Dict:
         """
             Click the “I paid” button or something similar.
 
@@ -89,10 +89,12 @@ class ParseClient:
         :param port: proxy port;
         :param usr: proxy user name;
         :param pwd: proxy user password;
+        :param hash_code: hash code or transaction number
         :return: Dictionary of variables - {'status': 'success', 'text': 'complete'}
         """
         logging.info(f"{'#'*30} Run approve task for '{name.title()}' {'#'*30}")
-        attribute_dict = dict(zip(["task_url", "host", "port", "usr", "pwd"], [task_url, host, port, usr, pwd]))
+        attribute_dict = dict(zip(["task_url", "host", "port", "usr", "pwd", "hash_code"],
+                                  [task_url, host, port, usr, pwd, hash_code]))
         parse_obj = self.wu.get_object_of_exchanger(name, attribute_dict)
         logging.info(f"{'#'*30} Approve task has been done! {'#'*30}")
         return parse_obj.approve_task()
@@ -102,10 +104,10 @@ if __name__ == "__main__":
     ############################
     # Example execution methods
     temp = ParseClient()
-    # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="ilovesach4@gmail.com", currency_from="USDTTRC20",
-    #                                    currency_to="BTC",
-    #                                    wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=0.0005)
+    # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="lala.liza@mail.ru", currency_to="BTC",
+    #                                    currency_from="USDTTRC2",
+    #                                    wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=20)
     # print(temp_dict1)
     # time.sleep(5)
-    print(temp.renew_task(name="bitpayes", task_url="https://bitpayes.com/exchange/ru/32122/details.htm"))
-    ############################
+    print(temp.renew_task(name="bitpayes", task_url='https://bitpayes.com/exchange/ru/32122/details.htm', usr="lala.liza@mail.ru", pwd='12345678Ln'))
+    ###########################
