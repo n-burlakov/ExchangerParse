@@ -107,15 +107,16 @@ if __name__ == "__main__":
     # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="lala.liza@mail.ru", currency_to="BTC",
     #                                    currency_from="USDTTRC20",
     #                                    wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=21)
-    temp_dict1 = temp.prepare_exchange(name="cryptogin", email="ilovesach4@gmail.com", currency_to="BTC",
-                                       currency_from="USDTTRC20",
-                                       wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=2000)
+    temp_dict1 = temp.prepare_exchange(name="cryptogin", email="ilovesach4@gmail.com", currency_to="USDTTRC20",
+                                       currency_from="BTC",
+                                       # wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=1)
+                                       wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=1)
     print(temp_dict1)
-    # temp_dict1 = {'status': 'success', 'target_wallet': 'TDbY8bb9AioB936Fo9HGdB6gVxG311Gek3', 'source_value': 0.05262014, 'task_url': 'https://cryptogin.cc/ticket/259186', 'timer_time': 1701168452.800164}
+    # temp_dict1 = {'status': 'success', 'target_wallet': 'TDbY8bb9AioB936Fo9HGdB6gVxG311Gek3', 'source_value': 0.05262014, 'task_url': 'https://cryptogin.cc/ticket/259198', 'timer_time': 1701168452.800164}
     time.sleep(5)
     print(temp.renew_task(name="cryptogin", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
     # print(temp.renew_task(name="bitpayes", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
-    # print(temp.approve_task(name="bitpayes", task_url=temp_dict1['task_url'], usr="lala.liza@mail.ru", pwd='12345678Ln',
+    # print(temp.approve_task(name="cryptogin", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe',
     #                         hash_code="None"))
 
     ###########################

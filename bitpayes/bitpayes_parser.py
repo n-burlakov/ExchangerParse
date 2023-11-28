@@ -52,7 +52,7 @@ class ParseBitpayes(BaseParser):
             if self.auth(login=self.usr, password=self.pwd, driver=driver):
                 driver.refresh()
             else:
-                raise "Authentication was unsuccessful. Please check your "
+                raise "Authentication was unsuccessful. Please check your login and password"
             close = True
         else:
             close = False
@@ -95,7 +95,7 @@ class ParseBitpayes(BaseParser):
             if self.auth(self.usr, self.pwd, driver):
                 driver.refresh()
             else:
-                raise "Authentication was unsuccessful. Please check your "
+                raise "Authentication was unsuccessful. Please check your login and password"
             driver.execute_script("arguments[0].setAttribute('value',arguments[1])",
                                   driver.find_element(By.ID, "payment_USDT_TRANID"), self.hash_code)
             self._click(driver, "class_name", "btn-success")
