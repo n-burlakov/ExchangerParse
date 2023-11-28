@@ -6,6 +6,7 @@ from typing import Dict, Any
 import time
 
 from selenium import webdriver
+from seleniumwire import webdriver as webdriver_wire
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.common.exceptions import NoSuchElementException
@@ -152,7 +153,7 @@ class DataUtils:
                 result = solver.turnstile(
                     sitekey=resp['sitekey'], url=exchange_url, data=resp['data'], pagedata=resp['pagedata'],
                     action=resp['action'],
-                    useragent='Chrome/119.0.0.0')
+                    useragent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36')
                 break
             except Exception as exc:
                 driver.refresh()
@@ -187,7 +188,7 @@ class DataUtils:
         """
         useragent = UserAgent()
 
-        options = webdriver.ChromeOptions()
+        options = webdriver_wire.ChromeOptions()
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
@@ -197,4 +198,4 @@ class DataUtils:
         options.add_argument(f"user-agent={useragent.random}")
         options.set_capability("goog:loggingPrefs", {'browser': 'ALL'})
 
-        return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
+        return webdriver_wire.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)

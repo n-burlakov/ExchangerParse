@@ -34,7 +34,7 @@ class ParseWestchange(BaseParser):
 
     def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> Dict:
         if not driver:
-            driver = self.wu.cloudflare_challenge_solve_captcha(task_url, self.host, self.port, self.usr, self.pwd)
+            driver = self.wu.cloudflare_challenge_solve_captcha(self.task_url, self.host, self.port, self.usr, self.pwd)
             close = True
         else:
             close = False
@@ -72,7 +72,7 @@ class ParseWestchange(BaseParser):
                 driver.close()
                 driver.quit()
 
-    def approve_task(self, task_url: str = None) -> List:
+    def approve_task(self,) -> List:
         return {"status": "success", "text": "Exchange was approved, but the button 'Paid' wasn't find."}
 
     def get_currency_name(self, currency: str = None) -> str:

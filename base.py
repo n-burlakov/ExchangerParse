@@ -82,11 +82,10 @@ class BaseParser(ABC):
         pass
 
     @abstractmethod
-    def approve_task(self, task_url: str = None) -> Dict:
+    def approve_task(self) -> Dict:
         """
             Click button approve exchange task in task url.
 
-        :param task_url: url which we get after clicked 'Exchange';
         :return: List of variables - [status, text_of_result]
         """
         pass

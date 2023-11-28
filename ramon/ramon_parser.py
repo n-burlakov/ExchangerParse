@@ -65,10 +65,10 @@ class ParseRamon(BaseParser):
                 driver.close()
                 driver.quit()
 
-    def approve_task(self, task_url: str = None) -> List:
+    def approve_task(self) -> List:
         driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
         try:
-            driver.get(task_url)
+            driver.get(self.task_url)
             self._click(driver, "id", "paid-submit")
             return {"status": "success", "text": "Button was clicked"}
         except Exception as exc:
@@ -79,7 +79,11 @@ class ParseRamon(BaseParser):
 
     def get_currency_name(self, currency: str = None) -> str:
         coin_dict = {"USDT": "Tether ", "BTC": "Bitcoin"}
-        return [currency.replace(key, value) for key, value in coin_dict.items() if key in currency][0]
+
+        for key, value in coin_dict.items():
+            if key in currency:
+                return currency.replace(key, value)
+        return currency
 
     def get_click_currency(self, currency: str, currency_list: list):
         current_currency = self.get_currency_name(currency)

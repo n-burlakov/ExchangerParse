@@ -8,8 +8,12 @@ from base import BaseParser
 import wutil as wu
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
 from selenium.webdriver.common.service import Service
-from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
+from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, \
+    ElementNotInteractableException
 
 
 class ParseCryptogin(BaseParser):
@@ -33,7 +37,9 @@ class ParseCryptogin(BaseParser):
 
     def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> Dict:
         if not driver:
-            driver = self.wu.cloudflare_challenge_solve_captcha(task_url, self.host, self.port, self.usr, self.pwd)
+            task_url = self.task_url
+            driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
+            driver.get(task_url)
             close = True
         else:
             close = False
@@ -42,15 +48,14 @@ class ParseCryptogin(BaseParser):
             cur_time = self._timer_time(driver).split(':')
             timer_time = time.time() + int(cur_time[0]) * 60 + int(cur_time[1])
 
-            exchange_check_step = driver.find_element(By.CLASS_NAME, "exchange-check-step-2")
-            for item in exchange_check_step.find_elements(By.CLASS_NAME, "data-output-control"):
-                if "Сумма к оплате" in item.text:
-                    source_value = float(
-                        item.find_element(By.CLASS_NAME, "data-output-control-value").split(" ")[1].replace(',', '.'))
-                elif "Адрес получения" in item.text:
-                    target_wallet = item.find_element(By.CLASS_NAME, "data-output-control-value").text
-            status = "success"
+            source_value = float(
+                driver.find_element(By.CLASS_NAME, "exchange-check-step-1").find_elements(By.CLASS_NAME,
+                                                      "data-output-control")[1].text.split(" ")[0].replace(',', '.'))
 
+            target_wallet = driver.find_element(By.CLASS_NAME,
+                                    "exchange-check-step-2").find_elements(By.CLASS_NAME, "data-output-control")[1].text
+
+            status = "success"
             return {"status": status, "target_wallet": target_wallet, "source_value": source_value,
                     "task_url": task_url,
                     "timer_time": timer_time}
@@ -75,9 +80,10 @@ class ParseCryptogin(BaseParser):
 
     def get_currency_name(self, currency: str = None) -> str:
         coin_dict = {"USDT": "Tether ", "BTC": "Bitcoin"}
-        return \
-            [currency.replace(key, value).replace("2", "-2") if key in currency else currency for key, value in
-             coin_dict.items()][0]
+        for key, value in coin_dict.items():
+            if key in currency:
+                return currency.replace(key, value).replace("2", "-2")
+        return currency
 
     def get_click_currency(self, currency: str, currency_list: list):
         current_currency = self.get_currency_name(currency)
@@ -98,55 +104,95 @@ class ParseCryptogin(BaseParser):
                 elif element_search == "tag":
                     driver.find_element(By.TAG_NAME, name).click()
                 break
+            except ElementClickInterceptedException:
+                self.close_adds(driver)
             except Exception as exc:
                 logging.error(str(exc))
                 pass
         return driver
 
     def click_trade(self, driver: Any = None, count: float = 0):
-        driver.find_element(By.CLASS_NAME, "send-exchange-request-button").click()
+
+        driver = self._click(driver, "class_name", "send-exchange-request-button")
+        time.sleep(1)
+        self.close_adds(driver)
         time.sleep(1)
         self._timer_time(driver)
         return driver
 
+    def close_adds(self, driver):
+        element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "closeIcon_e567"))
+        )
+        try:
+            element.click()
+        except ElementNotInteractableException:
+            pass
+
     def parse_page(self) -> Dict:
         driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
+        # try:
+        driver.get(self.parse_url)
+        time.sleep(2)
+        WebDriverWait(driver, 40).until(
+            EC.element_to_be_clickable(driver.find_elements(By.CLASS_NAME, "custom-dropdown")[0])).click()
+
+        WebDriverWait(driver, 30).until(EC.element_to_be_clickable(
+            driver.find_elements(By.CLASS_NAME, "custom-dropdown")[0].find_element(By.CLASS_NAME,
+                                                                                   "custom-dropdown-search").find_element(
+                By.TAG_NAME, "input"))).send_keys(self.currency_from)
+
+        self.get_click_currency(self.currency_from,
+                                driver.find_elements(By.CLASS_NAME, "custom-dropdown-items")[0].find_elements(
+                                    By.CLASS_NAME, "custom-dropdown-item")).click()
+        self.close_adds(driver)
+        driver.find_elements(By.CLASS_NAME, "custom-dropdown")[1].click()
+        time.sleep(0.4)
+
+        driver.find_elements(By.CLASS_NAME, "custom-dropdown")[1].find_element(By.CLASS_NAME,
+                                                                               "custom-dropdown-search").find_element(
+            By.TAG_NAME, "input").send_keys(self.currency_to)
+
+        self.get_click_currency(self.currency_to,
+                                driver.find_elements(By.CLASS_NAME, "custom-dropdown-items")[1].find_elements(
+                                    By.CLASS_NAME, "custom-dropdown-item")).click()
+
+        first_input = driver.find_elements(By.CLASS_NAME, "input-amount-wrapper")[0].find_element(By.TAG_NAME, "input")
+        time.sleep(0.5)
+        first_input.clear()
+        time.sleep(1)
+        first_input.send_keys(str(self.value))
+
+        time.sleep(0.3)
+
+        driver.find_elements(By.CLASS_NAME, "dynamic-content-panel")[1].find_element(By.TAG_NAME, "button").click()
+        time.sleep(0.4)
+
+        exchange_form = driver.find_element(By.ID, "exchangeFormRequisitesPart")
+        for form_group in exchange_form.find_elements(By.CLASS_NAME, "form-row-control"):
+            if "Введите адрес получения" in form_group.get_attribute("placeholder") and self.wallet_to:
+                form_group.send_keys(self.wallet_to)
+            elif "Введите ваш Email" in form_group.get_attribute("placeholder") and self.email:
+                form_group.send_keys(self.email)
+
+        # accept rules
         try:
-            driver.get(self.parse_url)
+            WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable(driver.find_element(By.ID, "ruleAgree-block"))).find_element(By.TAG_NAME,
+                                                                                                        "label").click()
+        except ElementClickInterceptedException:
+            time.sleep(0.2)
+            WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable(driver.find_element(By.ID, "ruleAgree-block"))).find_element(By.TAG_NAME,
+                                                                                                        "label").click()
+        driver = self.click_trade(driver)
 
-            self.get_click_currency(self.currency_from,
-                                    driver.find_elements(By.CLASS_NAME, "custom-dropdown-items")[0].find_elements(
-                                        By.CLASS_NAME, "custom-dropdown-item")).click()
-            first_input = driver.find_elements(By.CLASS_NAME, "input-amount-wrapper")[0]
-            first_input.clear()
-            time.sleep(1)
-            first_input.send_keys(str(self.value))
-            self.get_click_currency(self.currency_to,
-                                    driver.find_elements(By.CLASS_NAME, "custom-dropdown-items")[1].find_elements(
-                                        By.CLASS_NAME, "custom-dropdown-item")).click()
+        task_url = driver.current_url
+        return self.exchange_renew_task(driver, task_url=task_url)
 
-            driver.find_elements(By.CLASS_NAME, "dynamic-content-panel")[1].find_element(By.TAG_NAME, "button").click()
-            time.sleep(0.4)
-            exchange_form = driver.find_element(By.ID, "exchangeFormRequisitesPart")
-
-            for form_group in exchange_form.find_elements(By.CLASS_NAME, "form-row-control"):
-                if "Введите адрес получения" in form_group.get_attribute("placeholder") and self.wallet_to:
-                    form_group.send_keys(self.wallet_to)
-                elif "Введите ваш Email" in form_group.get_attribute("placeholder") and self.email:
-                    form_group.send_keys(self.wallet_to)
-
-            # accept rules
-            exchange_form.find_elements(By.CLASS_NAME, "ruleAgree-block").find_element(By.TAG_NAME, "label").click()
-            time.sleep(0.5)
-
-            driver = self.click_trade(driver)
-
-            task_url = driver.current_url
-            return self.exchange_renew_task(driver, task_url=task_url)
-
-        except Exception as exc:
-            logging.error(str(exc))
-
-        finally:
-            driver.close()
-            driver.quit()
+        # except Exception as exc:
+        #     logging.error(str(exc))
+        #
+        # finally:
+        #     driver.close()
+        #     driver.quit()

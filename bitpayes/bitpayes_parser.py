@@ -22,7 +22,7 @@ class ParseBitpayes(BaseParser):
             time_step = re.search('var StepCount = (.*);', innerHTML).group(1)
             return time.time() + int(time_step) * 100
         except NoSuchElementException:
-            pass
+            return None
 
     def accept_cookie(self, driver: Any = None) -> Any:
         try:
@@ -33,41 +33,49 @@ class ParseBitpayes(BaseParser):
         return driver
 
     def auth(self, login: str, password: str, driver: Any = None) -> bool:
-        driver.find_element(By.CLASS_NAME, "svg-inline--fa").click()
-        # driver.find_element(By.CLASS_NAME, "svg-inline--fa fa-sign-in-alt fa-w-16").click()
-        driver.find_element(By.ID, "UserEmailAuth").send_keys(login)
-        driver.find_element(By.ID, "UUserPasswordAuth").send_keys(password)
-        driver.find_element(By.ID, "btnReAuth").click()
-        return True
+        try:
+            [item for item in driver.find_elements(By.CLASS_NAME, "nav-link") if "Авторизация" in item.text][0].click()
+            time.sleep(1)
+            driver.find_element(By.ID, "UserEmailAuth").send_keys(login)
+            driver.find_element(By.ID, "UserPasswordAuth").send_keys(password)
+            driver.find_element(By.ID, "btnReAuth").click()
+            return True
+        except:
+            return False
 
     def exchange_renew_task(self, driver: Any = None, task_url: str = None) -> Dict:
         if not driver:
             driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
-            driver.get(task_url)
-            time.sleep(5)
+            driver.get(self.task_url)
             driver = self.accept_cookie(driver)
-            if self.auth(self.usr, self.pwd, driver):
-                print('Success')
+            task_url = self.task_url
+            if self.auth(login=self.usr, password=self.pwd, driver=driver):
+                driver.refresh()
             else:
-                print('smth wrong')
+                raise "Authentication was unsuccessful. Please check your "
             close = True
         else:
             close = False
         try:
+            status = driver.find_element(By.ID, "OperationLabel").text
+            if "ожида" in status.lower():
+                timer_time = self._timer_time(driver)
+            else:
+                timer_time = None
             while True:
                 time.sleep(1)
                 try:
                     target_wallet = driver.find_element(By.ID, "CryptoWallet").text
                     break
                 except Exception as ex:
+                    if "Не завершена" in status:
+                        target_wallet = None
+                        break
                     logging.error("Exchange form is not available \n" + str(ex))
 
-            timer_time = self._timer_time(driver)
-
-            source_value = re.sub(r"[^.\d]", "",
-                                  driver.find_element(By.ID, "InfoBlock").find_elements(By.TAG_NAME, "strong")[1].text)
-
-            status = driver.find_element(By.ID, "OperationLabel").text
+            source_value = float(re.sub(r"[^.\d]", "",
+                                        driver.find_element(By.ID, "InfoBlock").find_elements(By.TAG_NAME, "strong")[
+                                            1].text))
 
             return {"status": status, "target_wallet": target_wallet, "source_value": source_value,
                     "task_url": task_url,
@@ -79,11 +87,17 @@ class ParseBitpayes(BaseParser):
                 driver.close()
                 driver.quit()
 
-    def approve_task(self, task_url: str = None, hash_code: str = None) -> Dict:
+    def approve_task(self, ) -> Dict:
         driver = self.wu.get_webdriver(self.host, self.port, self.usr, self.pwd)
         try:
-            driver.get(task_url)
-            driver.find_element(By.ID, "payment_USDT_TRANID").send_keys(hash_code)
+            driver.get(self.task_url)
+            driver = self.accept_cookie(driver)
+            if self.auth(self.usr, self.pwd, driver):
+                driver.refresh()
+            else:
+                raise "Authentication was unsuccessful. Please check your "
+            driver.execute_script("arguments[0].setAttribute('value',arguments[1])",
+                                  driver.find_element(By.ID, "payment_USDT_TRANID"), self.hash_code)
             self._click(driver, "class_name", "btn-success")
             return {"status": "success", "text": "Button was clicked"}
         except Exception as exc:

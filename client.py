@@ -74,7 +74,7 @@ class ParseClient:
         logging.info(f"{'#'*30} Run renew task for '{name.title()}' {'#'*30}")
         attribute_dict = dict(zip(["task_url", "host", "port", "usr", "pwd"], [task_url, host, port, usr, pwd]))
         parse_obj = self.wu.get_object_of_exchanger(name, attribute_dict)
-        output_vars = parse_obj.exchange_renew_task(task_url=task_url)
+        output_vars = parse_obj.exchange_renew_task()
         logging.info(f"{'#'*30} Renew has been done! {'#'*30}")
         return output_vars
 
@@ -105,9 +105,17 @@ if __name__ == "__main__":
     # Example execution methods
     temp = ParseClient()
     # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="lala.liza@mail.ru", currency_to="BTC",
-    #                                    currency_from="USDTTRC2",
-    #                                    wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=20)
-    # print(temp_dict1)
-    # time.sleep(5)
-    print(temp.renew_task(name="bitpayes", task_url='https://bitpayes.com/exchange/ru/32122/details.htm', usr="lala.liza@mail.ru", pwd='12345678Ln'))
+    #                                    currency_from="USDTTRC20",
+    #                                    wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=21)
+    temp_dict1 = temp.prepare_exchange(name="cryptogin", email="ilovesach4@gmail.com", currency_to="BTC",
+                                       currency_from="USDTTRC20",
+                                       wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=2000)
+    print(temp_dict1)
+    # temp_dict1 = {'status': 'success', 'target_wallet': 'TDbY8bb9AioB936Fo9HGdB6gVxG311Gek3', 'source_value': 0.05262014, 'task_url': 'https://cryptogin.cc/ticket/259186', 'timer_time': 1701168452.800164}
+    time.sleep(5)
+    print(temp.renew_task(name="cryptogin", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
+    # print(temp.renew_task(name="bitpayes", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
+    # print(temp.approve_task(name="bitpayes", task_url=temp_dict1['task_url'], usr="lala.liza@mail.ru", pwd='12345678Ln',
+    #                         hash_code="None"))
+
     ###########################
