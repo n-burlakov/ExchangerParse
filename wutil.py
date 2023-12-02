@@ -21,6 +21,7 @@ from ramon import ramon_parser
 from westchange import westchange_parser
 from bitpayes import bitpayes_parser
 from cryptogin import cryptogin_parser
+from cryptonex import cryptonex_parser
 
 
 class DataUtils:
@@ -36,14 +37,15 @@ class DataUtils:
         self.parser_dict = {"ramon": ramon_parser.ParseRamon,
                             "westchange": westchange_parser.ParseWestchange,
                             "bitpayes": bitpayes_parser.ParseBitpayes,
-                            "cryptogin": cryptogin_parser.ParseCryptogin}
+                            "cryptogin": cryptogin_parser.ParseCryptogin,
+                            "cryptonex": cryptonex_parser.ParseCryptonex}
 
     @classmethod
     def __parse_config_file(cls, config_filepath: str) -> Dict[str, str]:
         """
             Get config dictionary from 'config' directory
 
-            :param config_filepath (string): filepath to config file.
+            :param config_filepath (string): filepath to config file;
             :return dictionary with config info.
         """
         settings_dict = dict()

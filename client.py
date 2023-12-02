@@ -107,14 +107,16 @@ if __name__ == "__main__":
     # temp_dict1 = temp.prepare_exchange(name="bitpayes", email="lala.liza@mail.ru", currency_to="BTC",
     #                                    currency_from="USDTTRC20",
     #                                    wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=21)
-    temp_dict1 = temp.prepare_exchange(name="cryptogin", email="ilovesach4@gmail.com", currency_to="USDTTRC20",
+    temp_dict1 = temp.prepare_exchange(name="cryptonex", email="lovesach4@gmail.com", currency_to="USDTTRC20",
                                        currency_from="BTC",
                                        # wallet_to="16mPRz23tVR4n1e4mJTEH2n82wTMWdnSE2", value=1)
-                                       wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=1)
-    print(temp_dict1)
-    # temp_dict1 = {'status': 'success', 'target_wallet': 'TDbY8bb9AioB936Fo9HGdB6gVxG311Gek3', 'source_value': 0.05262014, 'task_url': 'https://cryptogin.cc/ticket/259198', 'timer_time': 1701168452.800164}
-    time.sleep(5)
-    print(temp.renew_task(name="cryptogin", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
+                                       wallet_to="TAN47nJdDUPEAReQWgpEemtBiep6nusLgM", value=0.008)
+    # print(temp_dict1)
+    # temp_dict1 = {'status': 'waiting for payment', 'target_wallet': '3DnAW9EhwZkMjPJFrzFJDtqZy1HjRUuNZT', 'source_value': 305.534234, 'task_url': '{"domain": "cryptonex.top", "httpOnly": false, "name": "UIN", "path": "/", "sameSite": "Lax", "secure": false, "value": "100107664507ecbe"}', 'timer_time': 1701529495.0}
+    # time.sleep(5)
+    # print(temp.renew_task(name="cryptonex", task_url=temp_dict1['task_url']))
+    # time.sleep(5)
+    # print(temp.approve_task(name="cryptonex", task_url=temp_dict1['task_url']))
     # print(temp.renew_task(name="bitpayes", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe'))
     # print(temp.approve_task(name="cryptogin", task_url=temp_dict1['task_url'], usr="ilovesach4@gmail.com", pwd='12345678qwe',
     #                         hash_code="None"))
